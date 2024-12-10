@@ -60,7 +60,6 @@ class AutoParallelReplaceWithParallelCrossEntropyPass(PassBase):
     def _apply_single_impl(self, main_program, startup_program, context):
         del_ops = []
         new_ops = []
-
         params = main_program.global_block().all_parameters()
         process_ids = params[0].dist_attr().process_mesh.process_ids
         group = new_process_group(sorted(process_ids))
