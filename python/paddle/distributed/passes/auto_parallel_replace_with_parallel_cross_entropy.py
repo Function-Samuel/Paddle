@@ -60,12 +60,6 @@ class AutoParallelReplaceWithParallelCrossEntropyPass(PassBase):
     def _apply_single_impl(self, main_program, startup_program, context):
         del_ops = []
         new_ops = []
-        params = main_program.global_block().all_parameters()
-        process_ids = params[0].dist_attr().process_mesh.process_ids
-        group = new_process_group(sorted(process_ids))
-        ring_id = group.id
-        nranks = group.nranks
-        rank = paddle.distributed.get_rank()
 
         for block in main_program.blocks:
             for op in reversed(block.ops):
@@ -78,6 +72,12 @@ class AutoParallelReplaceWithParallelCrossEntropyPass(PassBase):
                     placement1 = operand1.placements
                     if not placement1[1].is_shard():
                         return
+
+                    process_ids = op.dist_attr.process_mesh.process_ids
+                    group = new_process_group(sorted(process_ids))
+                    ring_id = group.id
+                    nranks = group.nranks
+                    rank = paddle.distributed.get_rank()
 
                     ignore_index = op.attrs()["ignore_index"]
                     paddle.pir.set_insertion_point(op)
